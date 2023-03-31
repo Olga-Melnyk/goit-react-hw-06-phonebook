@@ -1,6 +1,9 @@
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import PropTypes from 'prop-types';
+import { useDispatch, useSelector } from 'react-redux';
+import { addContact } from 'redux/contactsSlice';
+import { getContacts } from 'redux/selectors';
 
 import {
   ContainerForm,
@@ -30,7 +33,25 @@ const RecipeSchema = Yup.object().shape({
     .required('Required'),
 });
 
-export const ContactForm = ({ onSubmit }) => {
+export const ContactForm = () => {
+  const dispatch = useDispatch();
+  const contacts = useSelector(getContacts);
+
+  const handleSubmit = (values, actions) => {
+    let newContact = values;
+    const { name, number } = newContact;
+    actions.resetForm({
+      name: '',
+      number: '',
+    });
+    if (contacts.value.some(contact => contact.name === name)) {
+      alert(`${name} is already in contacts`);
+      return false;
+    }
+    dispatch(addContact(name, number));
+    return true;
+  };
+
   return (
     <Formik
       initialValues={{
@@ -39,7 +60,7 @@ export const ContactForm = ({ onSubmit }) => {
       }}
       validationSchema={RecipeSchema}
       onSubmit={(values, actions) => {
-        onSubmit(values, actions);
+        handleSubmit(values, actions);
       }}
     >
       <ContainerForm>
@@ -61,5 +82,5 @@ export const ContactForm = ({ onSubmit }) => {
 };
 
 ContactForm.propTypes = {
-  onSubmit: PropTypes.func,
+  contacts: PropTypes.object,
 };
